@@ -1,0 +1,10 @@
+version: '3.1'
+
+services:
+  totum:
+    image: totum_image
+    restart: always
+    ports:
+      - 80:80
+    volumes:
+      - /var/lib/totum:/var/lib/postgresql/
