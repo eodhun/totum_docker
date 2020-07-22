@@ -33,6 +33,7 @@ git clone https://github.com/vvzvlad/totum_docker.git && cd totum_docker
 docker build --tag totum_image .
 docker-compose up -d
 ```
+При запуске через docker-compose сервис будет автоматически стартовать после загрузки системы. 
 
 
 Остальные команды:  
