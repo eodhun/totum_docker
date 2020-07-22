@@ -1,4 +1,4 @@
-version: '3.1'
+version: '2'
 
 services:
   totum:
@@ -6,8 +6,9 @@ services:
     restart: always
     ports:
       - 80:80
-    volumes:
-      - totum_volime:/var/lib/postgresql
+    volumes: 
+      - totum_volume:/var/lib/postgresql
 
 volumes:
-  totum_volime:
+  totum_volume:
+    driver: local
