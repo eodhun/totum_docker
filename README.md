@@ -6,6 +6,7 @@ wget -q -O - https://get.docker.com  | sudo bash
 
 Запустить totum в докере:
 ```sh
+apt update && apt install git -y
 git clone https://github.com/vvzvlad/totum_docker.git && cd totum_docker
 docker build --tag totum_image .
 docker run -p 80:80 --name totum --volume totum_volume --detach totum_image
