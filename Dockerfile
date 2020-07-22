@@ -39,10 +39,12 @@ RUN echo "*/10 * * * *    cd /var/www/totum-mit-master/Crons && php -f every10mi
 RUN bash -c 'echo -e "[supervisord]\nnodaemon=true\n[program:apache2]\ncommand=service apache2 start\n[program:postgresql]\ncommand=service postgresql start\n[program:cron]\ncommand = cron -f -L 15\nautostart=true\nautorestart=true\n" >> /etc/supervisor/conf.d/supervisord.conf'
 
 RUN echo "CREATE USER totum_user WITH ENCRYPTED PASSWORD 'totum_pass';" >> /postgresql.sql
-RUN echo "CREATE DATABASE totum;" >> /postgresql.sql
-RUN echo "GRANT ALL PRIVILEGES ON DATABASE totum TO totum_user;" >> /postgresql.sql
+RUN echo "CREATE DATABASE totum_db;" >> /postgresql.sql
+RUN echo "GRANT ALL PRIVILEGES ON DATABASE totum_db TO totum_user;" >> /postgresql.sql
 
-RUN service postgresql start && sudo -u postgres psql -f /postgresql.sql
+RUN service postgresql start && sudo -u postgres psql -f /postgresql.sql && service apache2 start && echo "Create main DB, please, wait 1-2m" && curl --silent -o /dev/null 'http://localhost/' --data-raw 'db_host=localhost&db_name=totum_db&db_schema=totum_scheme+&db_user_login=totum_user&db_user_password=totum_pass&pg_dump=pg_dump&psql=psql&user_login=admin&user_pass=totum&admin_email=' --insecure
+
+RUN echo "Login: admin, Password: totum"
 
 VOLUME ["/var/lib/postgresql"]
 CMD ["/usr/bin/supervisord"]
