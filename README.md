@@ -35,8 +35,10 @@ docker-compose up -d
 ```
 При запуске через docker-compose сервис будет автоматически стартовать после загрузки системы. 
 
+# Авторизация
+Эти команды создают уже установленный экземпляр totum, в который достаточно авторизоваться с логином и паролем admin/totum
 
-Остальные команды:  
+## Остальные команды:  
 Удалить все: docker rm -f $(docker ps -a -q) && docker rmi $(docker images -q)  
 Собрать контейнер: docker build -t totum_image .  
 Создать контейнер: docker run -p 80:80 --name totum -v totum_volume totum_image   
