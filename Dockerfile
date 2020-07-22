@@ -1,13 +1,13 @@
 FROM amd64/debian:10.4-slim
 EXPOSE 80 443
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y install lsb-release apt-transport-https ca-certificates gnupg-agent curl && rm -rf /var/cache/apt
+RUN DEBIAN_FRONTEND=noninteractive apt-get -qq update && DEBIAN_FRONTEND=noninteractive apt-get -qq -y install lsb-release apt-transport-https ca-certificates gnupg-agent curl && rm -rf /var/cache/apt
 RUN curl -o /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg
 RUN echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" | tee /etc/apt/sources.list.d/php7.3.list
 RUN sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
 RUN curl -o ACCC4CF8.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc && apt-key add ACCC4CF8.asc && rm ACCC4CF8.asc
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y postgresql-12 apache2 php7.3 php7.3-cli libapache2-mod-php7.3 php7.3-fpm php7.3-json php7.3-pdo php7.3-mysql php7.3-zip php7.3-gd php7.3-mbstring php7.3-curl php7.3-xml php7.3-bcmath php7.3-opcache php7.3-pgsql git sudo supervisor locales && rm -rf /var/cache/apt
+RUN DEBIAN_FRONTEND=noninteractive apt-get -qq update && DEBIAN_FRONTEND=noninteractive apt-get -qq install -y postgresql-12 apache2 php7.3 php7.3-cli libapache2-mod-php7.3 php7.3-fpm php7.3-json php7.3-pdo php7.3-mysql php7.3-zip php7.3-gd php7.3-mbstring php7.3-curl php7.3-xml php7.3-bcmath php7.3-opcache php7.3-pgsql git sudo supervisor locales && rm -rf /var/cache/apt
 RUN a2enmod rewrite proxy_fcgi setenvif
 RUN a2enconf php7.3-fpm
 
