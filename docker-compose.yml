@@ -7,4 +7,7 @@ services:
     ports:
       - 80:80
     volumes:
-      - /var/lib/totum:/var/lib/postgresql/
+      - totum_volime:/var/lib/postgresql
+
+volumes:
+  totum_volime:
