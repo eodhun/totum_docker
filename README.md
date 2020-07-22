@@ -30,6 +30,7 @@ sudo chmod +x /usr/local/bin/docker-compose
 ```sh
 apt update && apt install git -y
 git clone https://github.com/vvzvlad/totum_docker.git && cd totum_docker
+docker build --tag totum_image .
 docker-compose up -d
 ```
 
