@@ -43,6 +43,7 @@ RUN echo "CREATE DATABASE totum_db;" >> /postgresql.sql
 RUN echo "GRANT ALL PRIVILEGES ON DATABASE totum_db TO totum_user;" >> /postgresql.sql
 
 RUN service postgresql start && sudo -u postgres psql -f /postgresql.sql && service apache2 start && echo "Create main DB, please, wait 1-2m" && curl --silent -o /dev/null 'http://localhost/' --data-raw 'db_host=localhost&db_name=totum_db&db_schema=totum_scheme+&db_user_login=totum_user&db_user_password=totum_pass&pg_dump=pg_dump&psql=psql&user_login=admin&user_pass=totum&admin_email=' --insecure
+RUN rm /postgresql.sql
 
 RUN echo "Login: admin, Password: totum"
 
