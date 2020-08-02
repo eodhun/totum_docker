@@ -25,6 +25,9 @@ RUN echo "short_open_tag = On" >> /etc/php/7.3/cli/php.ini
 RUN echo "opcache.enable_cli = On" >> /etc/php/7.3/apache2/php.ini
 RUN echo "opcache.enable_cli = On" >> /etc/php/7.3/cli/php.ini
 
+RUN echo "memory_limit = 1024M" >> /etc/php/7.3/apache2/php.ini
+RUN echo "memory_limit = 1024M" >> /etc/php/7.3/cli/php.ini
+
 RUN echo "<Directory "/var/www/html">" >>  /etc/apache2/sites-enabled/000-default.conf
 RUN echo "AllowOverride All" >>  /etc/apache2/sites-enabled/000-default.conf
 RUN echo "</Directory>" >>  /etc/apache2/sites-enabled/000-default.conf
