@@ -44,3 +44,4 @@ docker-compose up -d
 Создать контейнер: docker run -p 80:80 --name totum -v totum_volume totum_image   
 Остановить контейнер: docker stop   
 Запустить остановленный контейнер: docker start totum  
+Зайти в запущенный контейнер для диагностики: docker exec -it totum_docker_totum_1 /bin/bash
