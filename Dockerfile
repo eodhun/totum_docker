@@ -42,7 +42,7 @@ RUN echo "CREATE DATABASE totum_db;" >> /postgresql.sql
 RUN echo "GRANT ALL PRIVILEGES ON DATABASE totum_db TO totum_user;" >> /postgresql.sql
 
 RUN service postgresql start && sudo -u postgres psql -f /postgresql.sql && rm /postgresql.sql 
-RUN echo "Create main DB, please, wait 1-2m" && bin/totum install --pgdump=PGDUMP --psql=PSQL -e -- ru no-milti Main admin@nodomain.com nodomain.com admin admin totum_db localhost totum_user totum_pass
+RUN echo "Create main DB, please, wait 1-2m" && /var/www/totum-mit/bin/totum install --pgdump=PGDUMP --psql=PSQL -e -- ru no-milti Main admin@nodomain.com nodomain.com admin admin totum_db localhost totum_user totum_pass
 
 RUN echo "Login: admin, Password: admin"
 
