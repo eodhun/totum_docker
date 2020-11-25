@@ -2,7 +2,7 @@ FROM amd64/debian:10.4-slim
 EXPOSE 80 443
 ENV COMPOSER_ALLOW_SUPERUSER 1
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y install lsb-release apt-transport-https ca-certificates gnupg-agent curl
+RUN DEBIAN_FRONTEND=noninteractive apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y install lsb-release apt-transport-https ca-certificates gnupg-agent curl apt-utils
 RUN curl -o /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg
 RUN echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" | tee /etc/apt/sources.list.d/php7.3.list
 RUN sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
