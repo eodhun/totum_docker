@@ -37,11 +37,11 @@ RUN echo "*/10 * * * *       cd /var/www/totum-mit/bin/totum clean-schema-tmp-ta
 
 RUN bash -c 'echo -e "[supervisord]\nnodaemon=true\n[program:apache2]\ncommand=service apache2 start\n[program:postgresql]\ncommand=service postgresql start\n[program:cron]\ncommand = cron -f -L 15\nautostart=true\nautorestart=true\n" >> /etc/supervisor/conf.d/supervisord.conf'
 
-RUN echo "CREATE USER totum_user WITH ENCRYPTED PASSWORD 'totum_pass';" > /postgresql.sql
-RUN echo "CREATE DATABASE totum_db;" >> /postgresql.sql
-RUN echo "GRANT ALL PRIVILEGES ON DATABASE totum_db TO totum_user;" >> /postgresql.sql
+RUN echo "CREATE USER totum_user WITH ENCRYPTED PASSWORD 'totum_pass';" > /tmp/postgresql.sql
+RUN echo "CREATE DATABASE totum_db;" >> /tmp/postgresql.sql
+RUN echo "GRANT ALL PRIVILEGES ON DATABASE totum_db TO totum_user;" >> /tmp/postgresql.sql
 
-RUN service postgresql start && sudo -u postgres psql -f /postgresql.sql && rm /postgresql.sql && echo "Create main DB, please, wait 1-2m" && /var/www/totum-mit/bin/totum install --pgdump=PGDUMP --psql=PSQL -e -- ru no-milti main admin@nodomain.com nodomain.com admin admin totum_db localhost totum_user totum_pass
+RUN service postgresql start && sudo -u postgres psql -f /tmp/postgresql.sql && /var/www/totum-mit/bin/totum install --pgdump=PGDUMP --psql=PSQL -e -- ru no-milti main admin@nodomain.com nodomain.com admin admin totum_db localhost totum_user totum_pass
 
 RUN echo "Login: admin, Password: admin"
 
