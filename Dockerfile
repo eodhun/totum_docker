@@ -1,5 +1,6 @@
 FROM amd64/debian:10.4-slim
 EXPOSE 80 443
+ENV COMPOSER_ALLOW_SUPERUSER 1
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y install lsb-release apt-transport-https ca-certificates gnupg-agent curl
 RUN curl -o /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg
@@ -7,26 +8,19 @@ RUN echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" | tee /etc
 RUN sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
 RUN curl -o ACCC4CF8.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc && apt-key add ACCC4CF8.asc && rm ACCC4CF8.asc
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y postgresql-12 apache2 php7.3 php7.3-cli libapache2-mod-php7.3  php7.3-json php7.3-pdo php7.3-mysql php7.3-zip php7.3-gd php7.3-mbstring php7.3-curl php7.3-xml php7.3-bcmath php7.3-opcache php7.3-pgsql git sudo supervisor locales
+RUN DEBIAN_FRONTEND=noninteractive apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y postgresql-12 apache2 php7.3 php7.3-cli libapache2-mod-php7.3  php7.3-json php7.3-pdo php7.3-mysql php7.3-zip php7.3-gd php7.3-soap php7.3-mbstring php7.3-curl php7.3-xml php7.3-bcmath php7.3-opcache php7.3-pgsql git sudo supervisor locales
 RUN a2enmod rewrite proxy_fcgi setenvif
-
 
 RUN locale-gen en_US.UTF-8
 RUN DEBIAN_FRONTEND=noninteractive dpkg-reconfigure locales 
 
-RUN curl -o ioncube.tar.gz https://downloads.ioncube.com/loader_downloads/ioncube_loaders_lin_x86-64.tar.gz && tar -xvzf ioncube.tar.gz && cp ./ioncube/ioncube_loader_lin_7.3.so /usr/lib/php/20180731/ && rm -rf ./ioncube ioncube.tar.gz
+RUN cd /var/www/totum-mit && php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+RUN cd /var/www/totum-mit && php composer-setup.php --quiet && rm composer-setup.php
+RUN cd /var/www/totum-mit && php composer.phar install --no-dev --prefer-source --no-interaction
 
-RUN echo "zend_extension=/usr/lib/php/20180731/ioncube_loader_lin_7.3.so" >> /etc/php/7.3/apache2/php.ini
-RUN echo "zend_extension=/usr/lib/php/20180731/ioncube_loader_lin_7.3.so" >> /etc/php/7.3/cli/php.ini
-
-RUN echo "short_open_tag = On" >> /etc/php/7.3/apache2/php.ini
-RUN echo "short_open_tag = On" >> /etc/php/7.3/cli/php.ini
-
-RUN echo "opcache.enable_cli = On" >> /etc/php/7.3/apache2/php.ini
-RUN echo "opcache.enable_cli = On" >> /etc/php/7.3/cli/php.ini
-
-RUN echo "memory_limit = 1024M" >> /etc/php/7.3/apache2/php.ini
-RUN echo "memory_limit = 1024M" >> /etc/php/7.3/cli/php.ini
+RUN echo "short_open_tag = On" >> /etc/php/7.3/apache2/php.ini &&  echo "short_open_tag = On" >> /etc/php/7.3/cli/php.ini
+RUN echo "opcache.enable_cli = On" >> /etc/php/7.3/apache2/php.ini && echo "opcache.enable_cli = On" >> /etc/php/7.3/cli/php.ini
+RUN echo "memory_limit = 1024M" >> /etc/php/7.3/apache2/php.ini && echo "memory_limit = 1024M" >> /etc/php/7.3/cli/php.ini
 
 RUN echo "<Directory "/var/www/html">" >>  /etc/apache2/sites-enabled/000-default.conf
 RUN echo "AllowOverride All" >>  /etc/apache2/sites-enabled/000-default.conf
@@ -36,17 +30,18 @@ RUN rm -rf /var/www/html
 RUN git clone https://github.com/totumonline/totum-mit.git /var/www/totum-mit && chown -R www-data:www-data /var/www/
 RUN ln -s /var/www/totum-mit/http /var/www/html 
 
-RUN echo "0 * * * *       cd /var/www/totum-mit/Crons && php -f cleanTmp.php > /dev/null 2>&1" | crontab -u root -
-RUN echo "*/10 * * * *    cd /var/www/totum-mit-master/Crons && php -f every10minutes.php  > /dev/null 2>&1" | crontab -u root -
+RUN echo "* * * * *       cd /var/www/totum-mit/bin/totum schema-crons > /dev/null 2>&1" | crontab -u root -
+RUN echo "*/10 * * * *       cd /var/www/totum-mit/bin/totum clean-tmp-dir > /dev/null 2>&1" | crontab -u root -
+RUN echo "*/10 * * * *       cd /var/www/totum-mit/bin/totum clean-schema-tmp-tables > /dev/null 2>&1" | crontab -u root -
 
 RUN bash -c 'echo -e "[supervisord]\nnodaemon=true\n[program:apache2]\ncommand=service apache2 start\n[program:postgresql]\ncommand=service postgresql start\n[program:cron]\ncommand = cron -f -L 15\nautostart=true\nautorestart=true\n" >> /etc/supervisor/conf.d/supervisord.conf'
 
-RUN echo "CREATE USER totum_user WITH ENCRYPTED PASSWORD 'totum_pass';" >> /postgresql.sql
+RUN echo "CREATE USER totum_user WITH ENCRYPTED PASSWORD 'totum_pass';" > /postgresql.sql
 RUN echo "CREATE DATABASE totum_db;" >> /postgresql.sql
 RUN echo "GRANT ALL PRIVILEGES ON DATABASE totum_db TO totum_user;" >> /postgresql.sql
 
-RUN service postgresql start && sudo -u postgres psql -f /postgresql.sql && service apache2 start && echo "Create main DB, please, wait 1-2m" && curl --silent -o /dev/null 'http://localhost/' --data-raw 'db_host=localhost&db_name=totum_db&db_schema=totum_scheme+&db_user_login=totum_user&db_user_password=totum_pass&pg_dump=pg_dump&psql=psql&user_login=admin&user_pass=totum&admin_email=' --insecure
-RUN rm /postgresql.sql
+RUN service postgresql start && sudo -u postgres psql -f /postgresql.sql && rm /postgresql.sql 
+RUN echo "Create main DB, please, wait 1-2m" && bin/totum install --pgdump=PGDUMP --psql=PSQL -e -- ru no-milti Main admin@nodomain.com nodomain.com admin admin totum_db localhost totum_user totum_pass
 
 RUN echo "Login: admin, Password: totum"
 
