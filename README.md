@@ -5,21 +5,6 @@ wget -q -O - https://get.docker.com  | sudo bash
 systemctl enable docker
 ```
 
-Запустить totum в докере:
-```sh
-apt update && apt install git -y
-git clone https://github.com/vvzvlad/totum_docker.git && cd totum_docker
-docker build --tag totum_image .
-docker run -p 80:80 --name totum --volume totum_volume --detach totum_image
-```
-
-Пересобрать и перезапустить контейнер, сохранив данные в БД (при обновлении git):  
-```sh
-docker container rm totum  
-docker build --tag totum_image .  
-docker run -p 80:80 --name totum --volume totum_volume totum_image  
-```
-
 Установить docker-compose:
 ```sh
 sudo curl -L "https://github.com/docker/compose/releases/download/1.26.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
@@ -34,6 +19,22 @@ docker build --tag totum_image .
 docker-compose up -d
 ```
 При запуске через docker-compose сервис будет автоматически стартовать после загрузки системы. 
+
+
+Запустить totum в докере без docker-compose:
+```sh
+apt update && apt install git -y
+git clone https://github.com/vvzvlad/totum_docker.git && cd totum_docker
+docker build --tag totum_image .
+docker run -p 80:80 --name totum --volume totum_volume --detach totum_image
+```
+
+Пересобрать и перезапустить контейнер, сохранив данные в БД (при обновлении git):  
+```sh
+docker container rm totum  
+docker build --tag totum_image .  
+docker run -p 80:80 --name totum --volume totum_volume totum_image  
+```
 
 # Авторизация
 Эти команды создают уже установленный экземпляр totum, в который достаточно авторизоваться с логином и паролем admin/admin
