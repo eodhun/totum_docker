@@ -15,10 +15,6 @@ RUN a2enmod rewrite proxy_fcgi setenvif
 RUN locale-gen en_US.UTF-8
 RUN dpkg-reconfigure locales 
 
-RUN cd /var/www/totum-mit && php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
-RUN cd /var/www/totum-mit && php composer-setup.php --quiet && rm composer-setup.php
-RUN cd /var/www/totum-mit && php composer.phar install --no-dev --prefer-source --no-interaction
-
 RUN echo "short_open_tag = On" >> /etc/php/7.3/apache2/php.ini &&  echo "short_open_tag = On" >> /etc/php/7.3/cli/php.ini
 RUN echo "opcache.enable_cli = On" >> /etc/php/7.3/apache2/php.ini && echo "opcache.enable_cli = On" >> /etc/php/7.3/cli/php.ini
 RUN echo "memory_limit = 1024M" >> /etc/php/7.3/apache2/php.ini && echo "memory_limit = 1024M" >> /etc/php/7.3/cli/php.ini
@@ -30,6 +26,10 @@ RUN echo "</Directory>" >>  /etc/apache2/sites-enabled/000-default.conf
 RUN rm -rf /var/www/html
 RUN git clone https://github.com/totumonline/totum-mit.git /var/www/totum-mit && chown -R www-data:www-data /var/www/
 RUN ln -s /var/www/totum-mit/http /var/www/html 
+
+RUN cd /var/www/totum-mit && php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+RUN cd /var/www/totum-mit && php composer-setup.php --quiet && rm composer-setup.php
+RUN cd /var/www/totum-mit && php composer.phar install --no-dev --prefer-source --no-interaction
 
 RUN echo "* * * * *       cd /var/www/totum-mit/bin/totum schema-crons > /dev/null 2>&1" | crontab -u root -
 RUN echo "*/10 * * * *       cd /var/www/totum-mit/bin/totum clean-tmp-dir > /dev/null 2>&1" | crontab -u root -
