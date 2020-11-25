@@ -1,7 +1,7 @@
 FROM amd64/debian:10.4-slim
 EXPOSE 80 443
-ENV COMPOSER_ALLOW_SUPERUSER 1
-ARG DEBIAN_FRONTEND noninteractive
+ARG COMPOSER_ALLOW_SUPERUSER=1
+ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get -y install lsb-release apt-transport-https ca-certificates gnupg-agent curl apt-utils
 RUN curl -o /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg
