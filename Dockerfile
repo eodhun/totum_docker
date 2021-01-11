@@ -3,6 +3,11 @@ EXPOSE 80 443
 ARG COMPOSER_ALLOW_SUPERUSER=1
 ARG DEBIAN_FRONTEND=noninteractive
 
+ARG totum_user=admin
+ARG totum_password=admin
+ARG postgres_user=totum_user
+ARG postgres_password=totum_password 
+
 RUN apt-get update && apt-get -y install lsb-release apt-transport-https ca-certificates gnupg-agent curl apt-utils
 RUN curl -o /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg
 RUN echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" | tee /etc/apt/sources.list.d/php7.3.list
@@ -37,13 +42,17 @@ RUN echo "*/10 * * * *       cd /var/www/totum-mit/bin/totum clean-schema-tmp-ta
 
 RUN bash -c 'echo -e "[supervisord]\nnodaemon=true\n[program:apache2]\ncommand=service apache2 start\n[program:postgresql]\ncommand=service postgresql start\n[program:cron]\ncommand = cron -f -L 15\nautostart=true\nautorestart=true\n" >> /etc/supervisor/conf.d/supervisord.conf'
 
-RUN echo "CREATE USER totum_user WITH ENCRYPTED PASSWORD 'totum_pass';" > /tmp/postgresql.sql
-RUN echo "CREATE DATABASE totum_db;" >> /tmp/postgresql.sql
-RUN echo "GRANT ALL PRIVILEGES ON DATABASE totum_db TO totum_user;" >> /tmp/postgresql.sql
+COPY data/postgres_totum.sql data/totum_dum[p].sql /tmp/
 
-RUN service postgresql start && sudo -u postgres psql -f /tmp/postgresql.sql && /var/www/totum-mit/bin/totum install --pgdump=PGDUMP --psql=PSQL -e -- ru no-milti main admin@nodomain.com nodomain.com admin admin totum_db localhost totum_user totum_pass
+RUN echo "CREATE USER $postgres_user WITH ENCRYPTED PASSWORD '$postgres_password';" > /tmp/postgresql.sql
+RUN echo "GRANT ALL PRIVILEGES ON DATABASE totum_db TO $postgres_user;" >> /tmp/postgresql.sql
 
-RUN echo "Login: admin, Password: admin"
+RUN service postgresql start && \
+        sudo -u postgres psql -f /tmp/postgres_totum.sql && sudo -u postgres psql -f /tmp/postgresql.sql && \
+        /var/www/totum-mit/bin/totum install --pgdump=PGDUMP --psql=PSQL -e -- ru no-milti main admin@nodomain.com nodomain.com $totum_user $totum_password totum_db localhost $postgres_user $postgres_password && \            if [ -e /tmp/totum_dump.sql ]; then echo "DROP SCHEMA main CASCADE;" > /tmp/drop.sql && sudo -u postgres psql --dbname='totum_db' -f /tmp/drop.sql && \
+        if [ -e /tmp/totum_dump.sql ]; then echo "DROP SCHEMA main CASCADE;" > /tmp/drop.sql && sudo -u postgres psql --dbname='totum_db' -f /tmp/drop.sql && \   
+		sudo -u postgres PGPASSWORD=$postgres_password psql -v ON_ERROR_STOP=1 --username='$postgres_user' --password --host='localhost' --dbname='totum_db' --no-readline < /tmp/totum_dump.sql; \                          \
+		fi 
 
 VOLUME ["/var/lib/postgresql"]
 CMD ["/usr/bin/supervisord"]
