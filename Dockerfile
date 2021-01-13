@@ -42,17 +42,13 @@ RUN echo "*/10 * * * *       cd /var/www/totum-mit/bin/totum clean-schema-tmp-ta
 
 RUN bash -c 'echo -e "[supervisord]\nnodaemon=true\n[program:apache2]\ncommand=service apache2 start\n[program:postgresql]\ncommand=service postgresql start\n[program:cron]\ncommand = cron -f -L 15\nautostart=true\nautorestart=true\n" >> /etc/supervisor/conf.d/supervisord.conf'
 
-COPY data/postgres_totum.sql data/totum_dum[p].sql /tmp/
+COPY data/logic.sh data/totum_dum[p].sql /tmp/
 
 RUN echo "CREATE USER $postgres_user WITH ENCRYPTED PASSWORD '$postgres_password';" > /tmp/postgresql.sql
+RUN echo "CREATE DATABASE totum_db;" >> /tmp/postgresql.sql
 RUN echo "GRANT ALL PRIVILEGES ON DATABASE totum_db TO $postgres_user;" >> /tmp/postgresql.sql
 
-RUN service postgresql start && \
-        sudo -u postgres psql -f /tmp/postgres_totum.sql && sudo -u postgres psql -f /tmp/postgresql.sql && \
-        /var/www/totum-mit/bin/totum install --pgdump=PGDUMP --psql=PSQL -e -- ru no-milti main admin@nodomain.com nodomain.com $totum_user $totum_password totum_db localhost $postgres_user $postgres_password && \            if [ -e /tmp/totum_dump.sql ]; then echo "DROP SCHEMA main CASCADE;" > /tmp/drop.sql && sudo -u postgres psql --dbname='totum_db' -f /tmp/drop.sql && \
-        if [ -e /tmp/totum_dump.sql ]; then echo "DROP SCHEMA main CASCADE;" > /tmp/drop.sql && sudo -u postgres psql --dbname='totum_db' -f /tmp/drop.sql && \   
-		sudo -u postgres PGPASSWORD=$postgres_password psql -v ON_ERROR_STOP=1 --username='$postgres_user' --password --host='localhost' --dbname='totum_db' --no-readline < /tmp/totum_dump.sql; \                          \
-		fi 
+RUN bash -c 'logic.sh $totum_user, $totum_password, $postgres_password, $postgres_user'
 
 VOLUME ["/var/lib/postgresql"]
 CMD ["/usr/bin/supervisord"]
