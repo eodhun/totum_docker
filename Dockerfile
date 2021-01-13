@@ -3,6 +3,7 @@ EXPOSE 80 443
 ARG COMPOSER_ALLOW_SUPERUSER=1
 ARG DEBIAN_FRONTEND=noninteractive
 
+ARG last_version=227d8ec819dbde07dfb502fc585c89c94b907eda
 ARG totum_user=admin
 ARG totum_password=admin
 ARG postgres_user=totum_user
@@ -34,6 +35,8 @@ RUN echo "</Directory>" >>  /etc/apache2/sites-enabled/000-default.conf
 
 RUN rm -rf /var/www/html
 RUN git clone https://github.com/totumonline/totum-mit.git /var/www/totum-mit && chown -R www-data:www-data /var/www/
+RUN git fetch origin $last_version
+RUN git checkout FETCH_HEAD
 RUN ln -s /var/www/totum-mit/http /var/www/html 
 
 RUN cd /var/www/totum-mit && php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
