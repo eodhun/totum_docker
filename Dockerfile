@@ -7,6 +7,10 @@ ARG totum_user=admin
 ARG totum_password=admin
 ARG postgres_user=totum_user
 ARG postgres_password=totum_password 
+ARG totum_database=totum_db
+ARG domain=nodomain.com
+ARG email=admin@nodomain.com
+ARG postgres_schema=main
 
 RUN apt-get update && apt-get -y install lsb-release apt-transport-https ca-certificates gnupg-agent curl apt-utils
 RUN curl -o /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg
@@ -45,10 +49,10 @@ RUN bash -c 'echo -e "[supervisord]\nnodaemon=true\n[program:apache2]\ncommand=s
 COPY data/logic.sh data/totum_dum[p].sql /tmp/
 
 RUN echo "CREATE USER $postgres_user WITH ENCRYPTED PASSWORD '$postgres_password';" > /tmp/postgresql.sql
-RUN echo "CREATE DATABASE totum_db;" >> /tmp/postgresql.sql
-RUN echo "GRANT ALL PRIVILEGES ON DATABASE totum_db TO $postgres_user;" >> /tmp/postgresql.sql
+RUN echo "CREATE DATABASE $totum_database;" >> /tmp/postgresql.sql
+RUN echo "GRANT ALL PRIVILEGES ON DATABASE $totum_database TO $postgres_user;" >> /tmp/postgresql.sql
 
-RUN bash -c 'logic.sh $totum_user, $totum_password, $postgres_password, $postgres_user'
+RUN bash -c 'logic.sh $postgres_schema, $email, $domain, $totum_user, $totum_password, $totum_database, $postgres_password, $postgres_user'
 
 VOLUME ["/var/lib/postgresql"]
 CMD ["/usr/bin/supervisord"]

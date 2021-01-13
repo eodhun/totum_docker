@@ -60,6 +60,10 @@ totum_user - логин для входа в систему тотум
 totum_password - пароль для входа в систему тотум
 postgres_user - логин для пользователя postgres
 postgres_password - пароль для пользователя postgres
+totum_database - название базы данных postgres
+domain - личный сервер
+email - email адрес
+postgres_schema - название схемы базы данных postgres
 
 ### Остальные команды:  
 Удалить все: docker rm -f $(docker ps -a -q) && docker rmi $(docker images -q)  
