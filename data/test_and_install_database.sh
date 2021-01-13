@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 service postgresql start
 sudo -u postgres psql -f /tmp/postgresql.sql
 /var/www/totum-mit/bin/totum install --pgdump=PGDUMP --psql=PSQL -e -- ru no-milti ${postgres_schema} ${email} ${domain} ${totum_user} ${totum_password} ${totum_database} localhost ${postgres_user} ${postgres_password}
