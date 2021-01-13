@@ -3,6 +3,15 @@ EXPOSE 80 443
 ARG COMPOSER_ALLOW_SUPERUSER=1
 ARG DEBIAN_FRONTEND=noninteractive
 
+ARG totum_user=admin
+ARG totum_password=admin
+ARG postgres_user=totum_user
+ARG postgres_password=totum_password 
+ARG totum_database=totum_db
+ARG domain=nodomain.com
+ARG email=admin@nodomain.com
+ARG postgres_schema=main
+
 RUN apt-get update && apt-get -y install lsb-release apt-transport-https ca-certificates gnupg-agent curl apt-utils
 RUN curl -o /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg
 RUN echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" | tee /etc/apt/sources.list.d/php7.3.list
@@ -37,13 +46,13 @@ RUN echo "*/10 * * * *       cd /var/www/totum-mit/bin/totum clean-schema-tmp-ta
 
 RUN bash -c 'echo -e "[supervisord]\nnodaemon=true\n[program:apache2]\ncommand=service apache2 start\n[program:postgresql]\ncommand=service postgresql start\n[program:cron]\ncommand = cron -f -L 15\nautostart=true\nautorestart=true\n" >> /etc/supervisor/conf.d/supervisord.conf'
 
-RUN echo "CREATE USER totum_user WITH ENCRYPTED PASSWORD 'totum_pass';" > /tmp/postgresql.sql
-RUN echo "CREATE DATABASE totum_db;" >> /tmp/postgresql.sql
-RUN echo "GRANT ALL PRIVILEGES ON DATABASE totum_db TO totum_user;" >> /tmp/postgresql.sql
+COPY data/logic.sh data/totum_dum[p].sql /tmp/
 
-RUN service postgresql start && sudo -u postgres psql -f /tmp/postgresql.sql && /var/www/totum-mit/bin/totum install --pgdump=PGDUMP --psql=PSQL -e -- ru no-milti main admin@nodomain.com nodomain.com admin admin totum_db localhost totum_user totum_pass
+RUN echo "CREATE USER $postgres_user WITH ENCRYPTED PASSWORD '$postgres_password';" > /tmp/postgresql.sql
+RUN echo "CREATE DATABASE $totum_database;" >> /tmp/postgresql.sql
+RUN echo "GRANT ALL PRIVILEGES ON DATABASE $totum_database TO $postgres_user;" >> /tmp/postgresql.sql
 
-RUN echo "Login: admin, Password: admin"
+RUN bash -c 'logic.sh $postgres_schema, $email, $domain, $totum_user, $totum_password, $totum_database, $postgres_password, $postgres_user'
 
 VOLUME ["/var/lib/postgresql"]
 CMD ["/usr/bin/supervisord"]

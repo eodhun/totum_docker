@@ -36,10 +36,36 @@ docker build --tag totum_image .
 docker run -p 80:80 --name totum --volume totum_volume totum_image  
 ```
 
-# Авторизация
-Эти команды создают уже установленный экземпляр totum, в который достаточно авторизоваться с логином и паролем admin/admin
+# Dump
+Для того чтобы сдлеать dump:
+```sh
+pg_dump --dbname="postgresql://$user:$password@localhost/$database" -O --schema=main --no-tablespaces --exclude-table-data='_tmp_tables' | grep -v '^--' > $path
+```
+$user - пользователь postgres
+$password - пароль postgres
+$database - название базы postgres
+$path - путь для сохраннения dump файла
+Для восстановление системы из dump необходимо добавить файл dump с названием totum_dump.sql в директорию data
 
-## Остальные команды:  
+## Авторизация
+Эти команды создают уже установленный экземпляр totum, в который достаточно авторизоваться с логином и паролем admin/admin
+Если необходимо установить отличный от стандартного логин и пароль:
+```sh
+apt update && apt install git -y
+git clone https://github.com/vvzvlad/totum_docker.git && cd totum_docker
+docker build --tag totum_image --build-arg totum_user=user --build-arg totum_password=password --build-arg postgres_user=user --build-arg postgres_password=password . 
+docker run -p 80:80 --name totum --volume totum_volume --detach totum_image
+```
+totum_user - логин для входа в систему тотум
+totum_password - пароль для входа в систему тотум
+postgres_user - логин для пользователя postgres
+postgres_password - пароль для пользователя postgres
+totum_database - название базы данных postgres
+domain - личный сервер
+email - email адрес
+postgres_schema - название схемы базы данных postgres
+
+### Остальные команды:  
 Удалить все: docker rm -f $(docker ps -a -q) && docker rmi $(docker images -q)  
 Собрать контейнер: docker build -t totum_image .  
 Создать контейнер: docker run -p 80:80 --name totum -v totum_volume totum_image   
