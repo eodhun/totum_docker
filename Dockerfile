@@ -52,6 +52,7 @@ RUN echo "CREATE USER $postgres_user WITH ENCRYPTED PASSWORD '$postgres_password
 RUN echo "CREATE DATABASE $totum_database;" >> /tmp/postgresql.sql
 RUN echo "GRANT ALL PRIVILEGES ON DATABASE $totum_database TO $postgres_user;" >> /tmp/postgresql.sql
 
+RUN chmod +x /tmp/test_and_install_database.sh 
 RUN bash -c '/tmp/test_and_install_database.sh $postgres_schema, $email, $domain, $totum_user, $totum_password, $totum_database, $postgres_password, $postgres_user'
 
 VOLUME ["/var/lib/postgresql"]
