@@ -46,13 +46,13 @@ RUN echo "*/10 * * * *       cd /var/www/totum-mit/bin/totum clean-schema-tmp-ta
 
 RUN bash -c 'echo -e "[supervisord]\nnodaemon=true\n[program:apache2]\ncommand=service apache2 start\n[program:postgresql]\ncommand=service postgresql start\n[program:cron]\ncommand = cron -f -L 15\nautostart=true\nautorestart=true\n" >> /etc/supervisor/conf.d/supervisord.conf'
 
-COPY data/logic.sh data/totum_dum[p].sql /tmp/
+COPY data/test_and_install_database.sh data/totum_dum[p].sql /tmp/
 
 RUN echo "CREATE USER $postgres_user WITH ENCRYPTED PASSWORD '$postgres_password';" > /tmp/postgresql.sql
 RUN echo "CREATE DATABASE $totum_database;" >> /tmp/postgresql.sql
 RUN echo "GRANT ALL PRIVILEGES ON DATABASE $totum_database TO $postgres_user;" >> /tmp/postgresql.sql
 
-RUN bash -c 'logic.sh $postgres_schema, $email, $domain, $totum_user, $totum_password, $totum_database, $postgres_password, $postgres_user'
+RUN bash -c '/tmp/test_and_install_database.sh $postgres_schema, $email, $domain, $totum_user, $totum_password, $totum_database, $postgres_password, $postgres_user'
 
 VOLUME ["/var/lib/postgresql"]
 CMD ["/usr/bin/supervisord"]
