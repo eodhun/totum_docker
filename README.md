@@ -39,8 +39,9 @@ docker run -p 80:80 --name totum --volume totum_volume totum_image
 # Dump
 Для того чтобы сдлеать dump:
 ```sh
-pg_dump --dbname="postgresql://$user:$password@localhost/$database" -O --schema=main --no-tablespaces --exclude-table-data='_tmp_tables' | grep -v '^--' > $path
+docker exec $container pg_dump --dbname="postgresql://$user:$password@localhost/$database" -O --schema=main --no-tablespaces --exclude-table-data='_tmp_tables' | grep -v '^--' > $path
 ```
+$container - наименование контейнера, либо его id
 $user - пользователь postgres
 $password - пароль postgres
 $database - название базы postgres
