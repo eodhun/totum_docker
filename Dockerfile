@@ -3,6 +3,7 @@ EXPOSE 80 443
 ARG COMPOSER_ALLOW_SUPERUSER=1
 ARG DEBIAN_FRONTEND=noninteractive
 
+ARG last_version=227d8ec819dbde07dfb502fc585c89c94b907eda
 ARG totum_user=admin
 ARG totum_password=admin
 ARG postgres_user=totum_user
@@ -34,6 +35,8 @@ RUN echo "</Directory>" >>  /etc/apache2/sites-enabled/000-default.conf
 
 RUN rm -rf /var/www/html
 RUN git clone https://github.com/totumonline/totum-mit.git /var/www/totum-mit && chown -R www-data:www-data /var/www/
+RUN git fetch origin $last_version
+RUN git checkout FETCH_HEAD
 RUN ln -s /var/www/totum-mit/http /var/www/html 
 
 RUN cd /var/www/totum-mit && php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
@@ -44,16 +47,15 @@ RUN echo "* * * * *       cd /var/www/totum-mit/bin/totum schema-crons > /dev/nu
 RUN echo "*/10 * * * *       cd /var/www/totum-mit/bin/totum clean-tmp-dir > /dev/null 2>&1" | crontab -u root -
 RUN echo "*/10 * * * *       cd /var/www/totum-mit/bin/totum clean-schema-tmp-tables > /dev/null 2>&1" | crontab -u root -
 
-RUN bash -c 'echo -e "[supervisord]\nnodaemon=true\n[program:apache2]\ncommand=service apache2 start\n[program:postgresql]\ncommand=service postgresql start\n[program:cron]\ncommand = cron -f -L 15\nautostart=true\nautorestart=true\n" >> /etc/supervisor/conf.d/supervisord.conf'
-
 COPY data/test_and_install_database.sh data/totum_dum[p].sql /tmp/
+RUN chmod +x /tmp/test_and_install_database.sh
+COPY data/supervisord.conf /etc/supervisor/conf.d/
 
 RUN echo "CREATE USER $postgres_user WITH ENCRYPTED PASSWORD '$postgres_password';" > /tmp/postgresql.sql
 RUN echo "CREATE DATABASE $totum_database;" >> /tmp/postgresql.sql
 RUN echo "GRANT ALL PRIVILEGES ON DATABASE $totum_database TO $postgres_user;" >> /tmp/postgresql.sql
 
-RUN chmod +x /tmp/test_and_install_database.sh 
-RUN bash -c '/tmp/test_and_install_database.sh $postgres_schema, $email, $domain, $totum_user, $totum_password, $totum_database, $postgres_password, $postgres_user'
+RUN /tmp/test_and_install_database.sh $postgres_schema, $email, $domain, $totum_user, $totum_password, $totum_database, $postgres_password, $postgres_user
 
 VOLUME ["/var/lib/postgresql"]
 CMD ["/usr/bin/supervisord"]
